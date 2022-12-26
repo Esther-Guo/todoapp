@@ -1,16 +1,11 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
 import TodoTable from "./components/TodoTable";
-import TodoTableAlt from "./components/TodoTableAlt";
+import "./App.css";
 
 
 function App() {
   return (
     <div className="App">
-      <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<TodoTableAlt />} />
-      </Routes>
-      </BrowserRouter>
+      <TodoTable />
     </div>
   );
 }

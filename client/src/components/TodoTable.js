@@ -1,105 +1,87 @@
-import React, {Component} from "react"
-import DisplayArea from "./DisplayArea";
-import FilterPanel from "./FilterPanel";
-import InputField from "./InputField";
+import React, {useState, useEffect} from 'react';
+import axios from "axios";
+import InputField from './InputField';
+import DisplayArea from './DisplayArea';
 import './styles/TodoTable.css';
-  
-  class TodoTable extends Component {
-    state = {
-      todolist: [
-        {id:0, text: 'Complete online JS course', checked: true},
-        {id:1, text: 'Jog around the park', checked: false},
-        {id:2, text: '10 minutes meditation', checked: false},
-        {id:3, text: 'Read for 1 hour', checked: false},
-        {id:4, text: 'Pick up groceries', checked: false},
-        {id:5, text: 'Complete Todo app project', checked: false},
-      ],
-      filterType: 'All',
-      inputText: '',
-      todoCount: 6,
-    }; 
-  
-    handleFilterTypeChange = (filterText) => {
-      this.setState({
-        filterType: filterText
-      });
-    }
-  
-    handleToggle = (todoid) => {
-      let todos = this.state.todolist;
-      todos.forEach(todo => {if (todo.id === todoid) todo.checked = !todo.checked});
-      this.setState({
-        todolist: todos
-      });
-    }
-  
-    handleDelete = (todoid) => {
-      this.setState(prevState => ({
-        todolist: prevState.todolist.filter(todo => 
-          todo.id !== todoid)}));
-    }
-  
-    handleClear = () => {
-      this.setState(prevState => ({
-        todolist: prevState.todolist.filter(todo => !todo.checked)
-      }));
-    }
-  
-    handleInputChange = (text) => {
-      this.setState({
-        inputText: text
-      });
-    }
-  
-    handleSubmit = () => {
-      //e.preventDefault();
-      if (this.state.inputText.length === 0) {
-        return;
-      }
-      const newItem = {
-        id: this.state.todoCount,
-        text: this.state.inputText,
-        checked: false,
-      };
-      this.setState(prevState => ({
-        todolist: prevState.todolist.concat(newItem),
-        inputText: '',
-        todoCount: prevState.todoCount+1,
-      }));
-      
-    }
-  
-    componentDidMount(){
-      let visited = localStorage.getItem("alreadyVisited");
-  
-      if (visited) { // not first visit: load data from LocalStorage
-          this.setState({
-            todolist: JSON.parse(localStorage.getItem('LocalTodos') || []),
-            todoCount: JSON.parse(localStorage.getItem('TodoCount')),
-          });
-      } else { // first visit
-          localStorage.setItem("alreadyVisited", true);
-          localStorage.setItem('LocalTodos', JSON.stringify(this.state.todolist));
-          localStorage.setItem('TodoCount', this.state.todoCount);
-      }
-    }
-  
-    componentDidUpdate() {
-      localStorage.setItem('LocalTodos', JSON.stringify(this.state.todolist));
-      localStorage.setItem('TodoCount', this.state.todoCount);
-    }
-  
-    render() {
-      return (
-        <div>
-          <InputField text = {this.state.inputText} onInputChange={this.handleInputChange} onInputSubmit={this.handleSubmit} />
-          <div className="main">
-            <DisplayArea todos = {this.state.todolist} filterType={this.state.filterType} onItemChecked={this.handleToggle} onItemDeleted={this.handleDelete} />
-            <FilterPanel todos = {this.state.todolist} filterType={this.state.filterType} onFilterTypeChange={this.handleFilterTypeChange} onItemsClear={this.handleClear}/>
-          </div>
-        </div>
-      )
-    }
-  }
 
-  export default TodoTable
+
+const TodoTable = () => {
+    const [todolist, setTodolist] = useState([]);
+    const [inputText, setInputText] = useState("");
+    const [todoCount, setTodoCount] = useState(0);
+
+    const handleInputChange = (text) => {
+        setInputText(text);
+    }
+
+    const handleSubmit = async () => {
+        //e.preventDefault();
+        if (inputText.length === 0) {
+            return;
+        }
+        const newItem = {
+            id: todoCount,
+            text: inputText,
+            checked: false,
+        };
+        setTodolist(todolist.concat(newItem));
+        console.log(todolist)
+        setInputText('');
+        setTodoCount(todoCount+1);
+
+        try {
+            await axios.post("http://localhost:8800/todos", newItem);
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
+    const handleToggle = async (todoid) => {
+        let todos = [...todolist];
+        todos.forEach(todo => {if (todo.id === todoid) todo.checked = !todo.checked});
+        setTodolist(todos);
+
+        try {
+            await axios.put("http://localhost:8800/todos/"+todoid);
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
+    const handleDelete = async (todoid) => {
+        console.log(todoid)
+        setTodolist(todolist => todolist.filter(todo => todo.id !== todoid));
+
+        try {
+            await axios.delete("http://localhost:8800/todos/"+todoid);
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
+    useEffect(() => {
+        console.log("render")
+        const fetchAllTodos = async () => {
+            try {
+                const res = await axios.get("http://localhost:8800/todos");
+                setTodolist(res.data);
+                console.log(res.data.slice(-1)[0].id)
+                setTodoCount(res.data.slice(-1)[0].id+1);
+            } catch (err) {
+                console.log(err);
+            }
+        }
+        fetchAllTodos()
+    }, [])
+
+    return (
+        <div className="container">
+            <InputField text = {inputText} onInputChange={handleInputChange} onInputSubmit={handleSubmit} />
+            <div className="main">
+                <DisplayArea todos = {todolist} onItemChecked={handleToggle} onItemDeleted={handleDelete}></DisplayArea>
+            </div>
+        </div>
+    )
+}
+
+export default TodoTable;

@@ -20,6 +20,13 @@ html {
     font-size: 1.8rem;
 } */
 
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    /* flex: 1 1 auto; */
+    color: hsl(234, 39%, 85%)
+}
+
 .btn {
     background-color: transparent;
     border: none;

@@ -19,7 +19,7 @@ app.get("/", (req, res) => {
 })
 
 app.get("/todos", (req, res) => {
-    const q = "SELECT * FROM todos"
+    const q = "SELECT * FROM todolist"
     db.query(q, (err, data) => {
         if (err) return res.json(err);
         return res.json(data);
@@ -27,14 +27,33 @@ app.get("/todos", (req, res) => {
 })
 
 app.post("/todos", (req, res) => {
-    const q = "INSERT INTO todos (`text`) VALUES (?)";
-    const values = [req.body.text];
+    const q = "INSERT INTO todolist (`id`,`text`) VALUES (?)";
+    const values = [req.body.id, req.body.text];
     db.query(q, [values], (err, data) => {
         if (err) return res.json(err);
         return res.json("created successfully");
     })
 })
 
+app.delete("/todos/:id", (req, res) => {
+    const todoId = req.params.id;
+    const q = "DELETE FROM todolist WHERE id = ?";
+    db.query(q, [todoId], (err, data) => {
+        if (err) return res.json(err);
+        return res.json("delete successfully");
+    })
+})
+
+app.put("/todos/:id", (req, res) => {
+    const todoId = req.params.id;
+    const q ="UPDATE todolist SET `checked` = IF (`checked` = true, false, true) WHERE id = ?";
+    // const values = [req.body.text];
+    db.query(q, [todoId], (err, data) => {
+        if (err) return res.json(err);
+        return res.json("update successfully");
+    })
+})
+
 app.listen(8800, () => {
-    console.log("connect to backend111")
+    console.log("connect to backend")
 })
