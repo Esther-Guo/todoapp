@@ -30,7 +30,7 @@ const TodoTable = () => {
         setTodoCount(todoCount+1);
 
         try {
-            await axios.post("http://localhost:8800/todos", newItem);
+            await axios.post(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/todos`, newItem);
         } catch (err) {
             console.log(err);
         }
@@ -42,7 +42,7 @@ const TodoTable = () => {
         setTodolist(todos);
 
         try {
-            await axios.put("http://localhost:8800/todos/"+todoid);
+            await axios.put(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/todos/`+todoid);
         } catch (err) {
             console.log(err);
         }
@@ -53,7 +53,7 @@ const TodoTable = () => {
         setTodolist(todolist => todolist.filter(todo => todo.id !== todoid));
 
         try {
-            await axios.delete("http://localhost:8800/todos/"+todoid);
+            await axios.delete(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/todos/`+todoid);
         } catch (err) {
             console.log(err);
         }
@@ -63,7 +63,7 @@ const TodoTable = () => {
         console.log("render")
         const fetchAllTodos = async () => {
             try {
-                const res = await axios.get("http://localhost:8800/todos");
+                const res = await axios.get(`http://localhost:${process.env.REACT_APP_SERVER_PORT}/todos`);
                 setTodolist(res.data);
                 console.log(res.data.slice(-1)[0].id)
                 setTodoCount(res.data.slice(-1)[0].id+1);
